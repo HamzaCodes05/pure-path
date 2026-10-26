@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { flights } from "@/db/schema";
-import { getActiveFlights } from "@/lib/flights";
+import { getActiveFlights, resolveFlightDate } from "@/lib/flights";
 
 type FlightRequestBody = Record<string, unknown>;
 
@@ -86,9 +86,12 @@ function normalizeBoolean(value: unknown) {
   return null;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const result = await getActiveFlights();
+    const { searchParams } = new URL(request.url);
+    const dateRange = resolveFlightDate(searchParams.get("date"));
+
+    const result = await getActiveFlights(dateRange ?? undefined);
 
     return Response.json({
       success: true,

@@ -30,16 +30,9 @@ export function RestaurantsSection({
   return (
     <section className="bg-white px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
       <div className="mx-auto max-w-5xl">
-        <p className="text-sm font-bold uppercase text-[#075f42]">
-          Nearby Dining
-        </p>
         <h2 className="mt-3 max-w-2xl font-serif text-4xl leading-tight text-[#202020] sm:text-5xl">
-          Restaurants Near the Holy Mosques
+          Restaurants
         </h2>
-        <p className="mt-5 max-w-2xl text-base leading-7 text-[#40505a]">
-          Browse nearby restaurant options in Makkah and Madinah with distance,
-          category, rating, and review details.
-        </p>
 
         {restaurantGroups.length > 0 ? (
           <div className="mt-10 space-y-8">

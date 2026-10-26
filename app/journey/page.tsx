@@ -4,11 +4,13 @@ import { LandingHeader } from "@/components/landing/LandingHeader";
 import { FlightsSection } from "@/components/packages/FlightsSection";
 import { HotelsSection } from "@/components/packages/HotelsSection";
 import { RestaurantsSection } from "@/components/packages/RestaurantsSection";
-import { getActiveFlights } from "@/lib/flights";
+import { FlightDateFilter } from "@/components/packages/FlightDateFilter";
+import { getActiveFlights, resolveFlightDate } from "@/lib/flights";
 import { getActiveApartments } from "@/lib/apartments";
 import { DistanceFilter } from "@/components/packages/DistanceFilter";
 import { normalizeMaxDistance } from "@/lib/distance";
-import { getActiveHotels } from "@/lib/hotels";
+import { CityFilter } from "@/components/packages/CityFilter";
+import { getActiveHotels, normalizeHotelCity } from "@/lib/hotels";
 import { getActiveRestaurants } from "@/lib/restaurants";
 
 export const metadata: Metadata = {
@@ -24,32 +26,40 @@ export default async function JourneyPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { distance } = await searchParams;
+  const { distance, flightDate, city: cityParam } = await searchParams;
+  const city =
+    normalizeHotelCity(Array.isArray(cityParam) ? cityParam[0] : cityParam) ??
+    undefined;
+  const flightDateValue = Array.isArray(flightDate)
+    ? flightDate[0]
+    : flightDate;
+  const flightRange = resolveFlightDate(flightDateValue) ?? undefined;
   const maxDistance =
     normalizeMaxDistance(Array.isArray(distance) ? distance[0] : distance) ??
     undefined;
 
   const [hotels, apartments, restaurants, flights] = await Promise.all([
-    getActiveHotels(undefined, maxDistance),
-    getActiveApartments(undefined, maxDistance),
-    getActiveRestaurants(undefined, maxDistance),
-    getActiveFlights(),
+    getActiveHotels(city, maxDistance),
+    getActiveApartments(city, maxDistance),
+    getActiveRestaurants(city, maxDistance),
+    getActiveFlights(flightRange),
   ]);
 
   return (
     <main className="min-h-screen bg-[#f8fbfb] pt-24 text-[#17211f]">
       <LandingHeader />
+      <CityFilter value={city} />
       <DistanceFilter value={maxDistance} />
       <HotelsSection hotels={hotels} />
       <HotelsSection
         hotels={apartments}
         tone="soft"
-        eyebrow="Apartment Stays"
-        title="Apartments Close to the Holy Mosques"
-        body="Spacious apartments in Makkah and Madinah, ideal for families and longer stays."
+        title="Apartments"
+        body=""
         empty="Apartment options are coming soon."
       />
       <RestaurantsSection restaurants={restaurants} />
+      <FlightDateFilter value={flightRange ? flightDateValue : undefined} />
       <FlightsSection flights={flights} />
     </main>
   );

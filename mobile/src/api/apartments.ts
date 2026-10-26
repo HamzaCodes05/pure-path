@@ -9,9 +9,19 @@ type ApartmentsResponse = {
   apartments?: Apartment[];
 };
 
-export async function getApartments(maxDistance?: number) {
+export async function getApartments(maxDistance?: number, city?: string) {
+  const params: string[] = [];
+
+  if (maxDistance) {
+    params.push(`maxDistance=${maxDistance}`);
+  }
+
+  if (city) {
+    params.push(`city=${encodeURIComponent(city)}`);
+  }
+
   const response = await fetch(
-    `${API_BASE_URL}/api/apartments${maxDistance ? `?maxDistance=${maxDistance}` : ""}`,
+    `${API_BASE_URL}/api/apartments${params.length ? `?${params.join("&")}` : ""}`,
   );
 
   if (!response.ok) {

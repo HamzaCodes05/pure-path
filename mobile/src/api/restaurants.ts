@@ -24,9 +24,19 @@ type RestaurantsResponse = {
   restaurants?: Restaurant[];
 };
 
-export async function getRestaurants(maxDistance?: number) {
+export async function getRestaurants(maxDistance?: number, city?: string) {
+  const params: string[] = [];
+
+  if (maxDistance) {
+    params.push(`maxDistance=${maxDistance}`);
+  }
+
+  if (city) {
+    params.push(`city=${encodeURIComponent(city)}`);
+  }
+
   const response = await fetch(
-    `${API_BASE_URL}/api/restaurants${maxDistance ? `?maxDistance=${maxDistance}` : ""}`,
+    `${API_BASE_URL}/api/restaurants${params.length ? `?${params.join("&")}` : ""}`,
   );
 
   if (!response.ok) {

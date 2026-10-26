@@ -23,9 +23,19 @@ type HotelsResponse = {
   hotels?: Hotel[];
 };
 
-export async function getHotels(maxDistance?: number) {
+export async function getHotels(maxDistance?: number, city?: string) {
+  const params: string[] = [];
+
+  if (maxDistance) {
+    params.push(`maxDistance=${maxDistance}`);
+  }
+
+  if (city) {
+    params.push(`city=${encodeURIComponent(city)}`);
+  }
+
   const response = await fetch(
-    `${API_BASE_URL}/api/hotels${maxDistance ? `?maxDistance=${maxDistance}` : ""}`,
+    `${API_BASE_URL}/api/hotels${params.length ? `?${params.join("&")}` : ""}`,
   );
 
   if (!response.ok) {

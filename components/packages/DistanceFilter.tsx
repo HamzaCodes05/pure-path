@@ -1,12 +1,13 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { DISTANCE_FILTER_OPTIONS } from "@/lib/distance";
 
 export function DistanceFilter({ value }: { value?: number }) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   return (
     <div className="px-5 sm:px-8 lg:px-12">
@@ -21,8 +22,14 @@ export function DistanceFilter({ value }: { value?: number }) {
           id="distance-filter"
           value={value ?? ""}
           onChange={(event) => {
-            const next = event.target.value;
-            router.push(next ? `${pathname}?distance=${next}` : pathname);
+            const params = new URLSearchParams(searchParams.toString());
+            if (event.target.value) {
+              params.set("distance", event.target.value);
+            } else {
+              params.delete("distance");
+            }
+            const query = params.toString();
+            router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
           }}
           className="rounded-lg border border-[#d9e3df] bg-white px-3 py-2 text-sm font-semibold text-[#17211f]"
         >

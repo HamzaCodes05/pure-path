@@ -22,14 +22,12 @@ function groupHotelsByCity(hotels: Hotel[]) {
 
 export function HotelsSection({
   hotels,
-  eyebrow = "Hotel Stays",
-  title = "Hotels Close to the Holy Mosques",
-  body = "Browse live accommodation options in Makkah and Madinah with distance and review details.",
+  title = "Hotels",
+  body = "",
   empty = "Hotel options are coming soon.",
   tone = "white",
 }: {
   hotels: Hotel[];
-  eyebrow?: string;
   title?: string;
   body?: string;
   empty?: string;
@@ -38,11 +36,10 @@ export function HotelsSection({
   const hotelGroups = groupHotelsByCity(hotels);
 
   return (
-    <section className={`${tone === "soft" ? "bg-[#f8fbfb]" : "bg-white"} px-5 py-14 sm:px-8 sm:py-20 lg:px-12`}>
+    <section
+      className={`${tone === "soft" ? "bg-[#f8fbfb]" : "bg-white"} px-5 py-14 sm:px-8 sm:py-10 lg:px-12`}
+    >
       <div className="mx-auto max-w-5xl">
-        <p className="text-sm font-bold uppercase text-[#075f42]">
-          {eyebrow}
-        </p>
         <h2 className="mt-3 max-w-2xl font-serif text-4xl leading-tight text-[#202020] sm:text-5xl">
           {title}
         </h2>
@@ -66,9 +63,7 @@ export function HotelsSection({
             ))}
           </div>
         ) : (
-          <p className="mt-8 text-base leading-7 text-[#40505a]">
-            {empty}
-          </p>
+          <p className="mt-8 text-base leading-7 text-[#40505a]">{empty}</p>
         )}
       </div>
     </section>

@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 import { getFlights, type Flight } from "../api/flights";
 import { getApartments, type Apartment } from "../api/apartments";
@@ -21,6 +28,67 @@ import {
   Section,
   SectionHeading,
 } from "../components/ui";
+
+const CITY_OPTIONS: { label: string; value: string | undefined }[] = [
+  { label: "All cities", value: undefined },
+  { label: "Makkah", value: "makkah" },
+  { label: "Madinah", value: "madinah" },
+];
+
+// City dropdown; the backend filters hotels, apartments and restaurants by city.
+function CityFilter({
+  value,
+  onChange,
+}: {
+  value: string | undefined;
+  onChange: (city: string | undefined) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const current = CITY_OPTIONS.find((option) => option.value === value);
+
+  return (
+    <View className="mb-5">
+      <Text className="mb-2 text-[12px] font-extrabold uppercase text-pure-green">
+        City
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="City filter"
+        onPress={() => setOpen((c) => !c)}
+        className="min-h-12 flex-row items-center justify-between rounded-lg border border-[#d9e3df] bg-pure-white px-3.5"
+      >
+        <Text className="text-[15px] font-bold text-pure-ink">
+          {current?.label ?? "All cities"}
+        </Text>
+        <Text className="text-pure-muted">{open ? "▲" : "▼"}</Text>
+      </Pressable>
+      {open ? (
+        <View className="mt-1 overflow-hidden rounded-lg border border-[#d9e3df] bg-pure-white">
+          {CITY_OPTIONS.map((option) => (
+            <Pressable
+              key={option.label}
+              onPress={() => {
+                onChange(option.value);
+                setOpen(false);
+              }}
+              className="px-3.5 py-3"
+            >
+              <Text
+                className={
+                  option.value === value
+                    ? "text-[15px] font-extrabold text-pure-green"
+                    : "text-[15px] text-pure-ink"
+                }
+              >
+                {option.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+    </View>
+  );
+}
 
 const DISTANCE_OPTIONS = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000];
 
@@ -80,6 +148,91 @@ function DistanceFilter({
             </Pressable>
           ))}
         </View>
+      ) : null}
+    </View>
+  );
+}
+
+const FLIGHT_DATE_PRESETS: { label: string; value: string | undefined }[] = [
+  { label: "All dates", value: undefined },
+  { label: "Today", value: "today" },
+  { label: "Yesterday", value: "yesterday" },
+  { label: "Tomorrow", value: "tomorrow" },
+];
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+// Flight date dropdown; the backend resolves today/yesterday/tomorrow or a YYYY-MM-DD date.
+function FlightDateFilter({
+  value,
+  onChange,
+}: {
+  value: string | undefined;
+  onChange: (date: string | undefined) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [customMode, setCustomMode] = useState(false);
+  const [customText, setCustomText] = useState("");
+  const preset = FLIGHT_DATE_PRESETS.find((option) => option.value === value);
+  const label = customMode
+    ? "Select date"
+    : (preset?.label ?? value ?? "All dates");
+
+  return (
+    <View className="mb-5">
+      <Text className="mb-2 text-[12px] font-extrabold uppercase text-pure-green">
+        Flight date
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Flight date filter"
+        onPress={() => setOpen((current) => !current)}
+        className="min-h-12 flex-row items-center justify-between rounded-lg border border-[#d9e3df] bg-pure-white px-3.5"
+      >
+        <Text className="text-[15px] font-bold text-pure-ink">{label}</Text>
+        <Text className="text-pure-muted">{open ? "▲" : "▼"}</Text>
+      </Pressable>
+      {open ? (
+        <View className="mt-1 overflow-hidden rounded-lg border border-[#d9e3df] bg-pure-white">
+          {[
+            ...FLIGHT_DATE_PRESETS,
+            { label: "Select date…", value: "__custom" },
+          ].map((option) => (
+            <Pressable
+              key={option.label}
+              onPress={() => {
+                setOpen(false);
+
+                if (option.value === "__custom") {
+                  setCustomMode(true);
+                  return;
+                }
+
+                setCustomMode(false);
+                setCustomText("");
+                onChange(option.value);
+              }}
+              className="px-3.5 py-3"
+            >
+              <Text className="text-[15px] text-pure-ink">{option.label}</Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+      {customMode ? (
+        <TextInput
+          value={customText}
+          onChangeText={(text) => {
+            setCustomText(text);
+
+            if (DATE_PATTERN.test(text)) {
+              onChange(text);
+            }
+          }}
+          placeholder="YYYY-MM-DD"
+          keyboardType="numbers-and-punctuation"
+          maxLength={10}
+          className="mt-2 min-h-12 rounded-lg border border-[#d9e3df] bg-pure-white px-3.5 text-[15px] text-pure-ink"
+        />
       ) : null}
     </View>
   );
@@ -196,6 +349,7 @@ function ListingSwiper({
 }
 
 export function JourneyScreen() {
+  const [city, setCity] = useState<string | undefined>();
   const [maxDistance, setMaxDistance] = useState<number | undefined>();
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [isHotelsLoading, setIsHotelsLoading] = useState(true);
@@ -206,6 +360,7 @@ export function JourneyScreen() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [isRestaurantsLoading, setIsRestaurantsLoading] = useState(true);
   const [restaurantError, setRestaurantError] = useState<string | null>(null);
+  const [flightDate, setFlightDate] = useState<string | undefined>();
   const [flights, setFlights] = useState<Flight[]>([]);
   const [isFlightsLoading, setIsFlightsLoading] = useState(true);
   const [flightError, setFlightError] = useState<string | null>(null);
@@ -215,7 +370,7 @@ export function JourneyScreen() {
 
     setIsHotelsLoading(true);
     setHotelError(null);
-    getHotels(maxDistance)
+    getHotels(maxDistance, city)
       .then((nextHotels) => {
         if (isMounted) {
           setHotels(nextHotels);
@@ -235,14 +390,14 @@ export function JourneyScreen() {
     return () => {
       isMounted = false;
     };
-  }, [maxDistance]);
+  }, [maxDistance, city]);
 
   useEffect(() => {
     let isMounted = true;
 
     setIsApartmentsLoading(true);
     setApartmentError(null);
-    getApartments(maxDistance)
+    getApartments(maxDistance, city)
       .then((next) => isMounted && setApartments(next))
       .catch(
         () =>
@@ -254,14 +409,14 @@ export function JourneyScreen() {
     return () => {
       isMounted = false;
     };
-  }, [maxDistance]);
+  }, [maxDistance, city]);
 
   useEffect(() => {
     let isMounted = true;
 
     setIsRestaurantsLoading(true);
     setRestaurantError(null);
-    getRestaurants(maxDistance)
+    getRestaurants(maxDistance, city)
       .then((nextRestaurants) => {
         if (isMounted) {
           setRestaurants(nextRestaurants);
@@ -281,12 +436,15 @@ export function JourneyScreen() {
     return () => {
       isMounted = false;
     };
-  }, [maxDistance]);
+  }, [maxDistance, city]);
 
   useEffect(() => {
     let isMounted = true;
 
-    getFlights()
+    setIsFlightsLoading(true);
+    setFlightError(null);
+
+    getFlights(flightDate)
       .then((nextFlights) => {
         if (isMounted) {
           setFlights(nextFlights);
@@ -306,7 +464,7 @@ export function JourneyScreen() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [flightDate]);
 
   const hotelGroups = useMemo(() => {
     return HOTEL_CITY_ORDER.map((city) => ({
@@ -347,12 +505,9 @@ export function JourneyScreen() {
       />
 
       <Section tone="paper">
+        <CityFilter value={city} onChange={setCity} />
         <DistanceFilter value={maxDistance} onChange={setMaxDistance} />
-        <SectionHeading
-          eyebrow="Hotel Stays"
-          title="Hotels Close to the Holy Mosques"
-          body="Browse live accommodation options in Makkah and Madinah with distance and review details."
-        />
+        <SectionHeading eyebrow="Hotel Stays" title="Hotels" body="" />
 
         {isHotelsLoading ? (
           <Text className="text-[15px] leading-[22px] text-pure-muted">
@@ -387,7 +542,7 @@ export function JourneyScreen() {
       <Section tone="soft">
         <SectionHeading
           eyebrow="Apartment Stays"
-          title="Apartments Close to the Holy Mosques"
+          title="Apartments"
           body="Spacious apartments in Makkah and Madinah, ideal for families and longer stays."
         />
 
@@ -459,6 +614,7 @@ export function JourneyScreen() {
       </Section>
 
       <Section tone="soft">
+        <FlightDateFilter value={flightDate} onChange={setFlightDate} />
         <SectionHeading
           eyebrow="Flight Options"
           title="Flights Ready for Your Journey"
@@ -485,7 +641,6 @@ export function JourneyScreen() {
           </Text>
         )}
       </Section>
-
     </ScreenScroll>
   );
 }

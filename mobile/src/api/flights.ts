@@ -20,8 +20,10 @@ type FlightsResponse = {
   flights?: Flight[];
 };
 
-export async function getFlights() {
-  const response = await fetch(`${API_BASE_URL}/api/flights`);
+export async function getFlights(date?: string) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/flights${date ? `?date=${encodeURIComponent(date)}` : ""}`,
+  );
 
   if (!response.ok) {
     throw new Error("Flight listings are unavailable.");

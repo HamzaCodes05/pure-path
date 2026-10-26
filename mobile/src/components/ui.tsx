@@ -115,7 +115,6 @@ export function Section({ children, tone = "paper", compact }: SectionProps) {
 }
 
 type SectionHeadingProps = {
-  eyebrow: string;
   title: string;
   body?: string;
   inverse?: boolean;
@@ -123,7 +122,6 @@ type SectionHeadingProps = {
 };
 
 export function SectionHeading({
-  eyebrow,
   title,
   body,
   inverse,
@@ -140,9 +138,7 @@ export function SectionHeading({
           "text-[13px] font-black uppercase leading-[18px] tracking-normal",
           eyebrowColorClass,
         )}
-      >
-        {eyebrow}
-      </Text>
+      ></Text>
       <Text
         className={cn(
           "font-serif text-[20px] font-bold leading-11",
