@@ -53,7 +53,7 @@ function formatDistance(distanceMeters: number) {
   return `${kilometers.toFixed(kilometers >= 10 ? 0 : 1)} km`;
 }
 
-function toHotelPayload(row: typeof hotels.$inferSelect): Hotel {
+export function toHotelPayload(row: typeof hotels.$inferSelect): Hotel {
   const city = normalizeHotelCity(row.city) ?? "makkah";
 
   return {

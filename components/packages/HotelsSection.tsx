@@ -20,21 +20,34 @@ function groupHotelsByCity(hotels: Hotel[]) {
   })).filter((group) => group.hotels.length > 0);
 }
 
-export function HotelsSection({ hotels }: { hotels: Hotel[] }) {
+export function HotelsSection({
+  hotels,
+  eyebrow = "Hotel Stays",
+  title = "Hotels Close to the Holy Mosques",
+  body = "Browse live accommodation options in Makkah and Madinah with distance and review details.",
+  empty = "Hotel options are coming soon.",
+  tone = "white",
+}: {
+  hotels: Hotel[];
+  eyebrow?: string;
+  title?: string;
+  body?: string;
+  empty?: string;
+  tone?: "white" | "soft";
+}) {
   const hotelGroups = groupHotelsByCity(hotels);
 
   return (
-    <section className="bg-white px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
+    <section className={`${tone === "soft" ? "bg-[#f8fbfb]" : "bg-white"} px-5 py-14 sm:px-8 sm:py-20 lg:px-12`}>
       <div className="mx-auto max-w-5xl">
         <p className="text-sm font-bold uppercase text-[#075f42]">
-          Hotel Stays
+          {eyebrow}
         </p>
         <h2 className="mt-3 max-w-2xl font-serif text-4xl leading-tight text-[#202020] sm:text-5xl">
-          Hotels Close to the Holy Mosques
+          {title}
         </h2>
         <p className="mt-5 max-w-2xl text-base leading-7 text-[#40505a]">
-          Browse live accommodation options in Makkah and Madinah with distance
-          and review details.
+          {body}
         </p>
 
         {hotelGroups.length > 0 ? (
@@ -54,7 +67,7 @@ export function HotelsSection({ hotels }: { hotels: Hotel[] }) {
           </div>
         ) : (
           <p className="mt-8 text-base leading-7 text-[#40505a]">
-            Hotel options are coming soon.
+            {empty}
           </p>
         )}
       </div>

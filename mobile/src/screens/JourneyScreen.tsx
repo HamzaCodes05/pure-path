@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { getFlights, type Flight } from "../api/flights";
+import { getApartments, type Apartment } from "../api/apartments";
 import { getHotels, type Hotel, type HotelCity } from "../api/hotels";
 import {
   getRestaurants,
@@ -135,6 +136,9 @@ export function JourneyScreen() {
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [isHotelsLoading, setIsHotelsLoading] = useState(true);
   const [hotelError, setHotelError] = useState<string | null>(null);
+  const [apartments, setApartments] = useState<Apartment[]>([]);
+  const [isApartmentsLoading, setIsApartmentsLoading] = useState(true);
+  const [apartmentError, setApartmentError] = useState<string | null>(null);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [isRestaurantsLoading, setIsRestaurantsLoading] = useState(true);
   const [restaurantError, setRestaurantError] = useState<string | null>(null);
@@ -161,6 +165,23 @@ export function JourneyScreen() {
           setIsHotelsLoading(false);
         }
       });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    getApartments()
+      .then((next) => isMounted && setApartments(next))
+      .catch(
+        () =>
+          isMounted &&
+          setApartmentError("Apartment listings are unavailable right now."),
+      )
+      .finally(() => isMounted && setIsApartmentsLoading(false));
 
     return () => {
       isMounted = false;
@@ -227,6 +248,16 @@ export function JourneyScreen() {
     })).filter((group) => group.hotels.length > 0);
   }, [hotels]);
 
+  const apartmentGroups = useMemo(() => {
+    return HOTEL_CITY_ORDER.map((city) => ({
+      city,
+      title:
+        apartments.find((a) => a.city === city)?.displayCity ??
+        HOTEL_CITY_LABELS[city],
+      apartments: apartments.filter((a) => a.city === city),
+    })).filter((group) => group.apartments.length > 0);
+  }, [apartments]);
+
   const restaurantGroups = useMemo(() => {
     return RESTAURANT_CITY_ORDER.map((city) => ({
       city,
@@ -284,6 +315,43 @@ export function JourneyScreen() {
 
       <Section tone="soft">
         <SectionHeading
+          eyebrow="Apartment Stays"
+          title="Apartments Close to the Holy Mosques"
+          body="Spacious apartments in Makkah and Madinah, ideal for families and longer stays."
+        />
+
+        {isApartmentsLoading ? (
+          <Text className="text-[15px] leading-[22px] text-pure-muted">
+            Loading apartments...
+          </Text>
+        ) : apartmentError ? (
+          <Text className="text-[15px] leading-[22px] text-pure-muted">
+            {apartmentError}
+          </Text>
+        ) : apartmentGroups.length > 0 ? (
+          <View className="gap-7">
+            {apartmentGroups.map((group) => (
+              <View key={group.city}>
+                <ListingSwiper
+                  title={group.title}
+                  accessibilityLabel={`${group.title} apartments`}
+                >
+                  {group.apartments.map((apartment) => (
+                    <HotelTile key={apartment.id} item={apartment} />
+                  ))}
+                </ListingSwiper>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <Text className="text-[15px] leading-[22px] text-pure-muted">
+            Apartment options are coming soon.
+          </Text>
+        )}
+      </Section>
+
+      <Section tone="paper">
+        <SectionHeading
           eyebrow="Nearby Dining"
           title="Restaurants Near the Holy Mosques"
           body="Browse nearby restaurant options in Makkah and Madinah with distance, category, rating, and review details."
@@ -319,7 +387,7 @@ export function JourneyScreen() {
         )}
       </Section>
 
-      <Section tone="paper">
+      <Section tone="soft">
         <SectionHeading
           eyebrow="Flight Options"
           title="Flights Ready for Your Journey"

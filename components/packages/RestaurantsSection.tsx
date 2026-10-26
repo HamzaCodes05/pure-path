@@ -28,7 +28,7 @@ export function RestaurantsSection({
   const restaurantGroups = groupRestaurantsByCity(restaurants);
 
   return (
-    <section className="bg-[#f8fbfb] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
+    <section className="bg-white px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
       <div className="mx-auto max-w-5xl">
         <p className="text-sm font-bold uppercase text-[#075f42]">
           Nearby Dining
