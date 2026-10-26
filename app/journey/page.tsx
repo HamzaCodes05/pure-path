@@ -6,6 +6,8 @@ import { HotelsSection } from "@/components/packages/HotelsSection";
 import { RestaurantsSection } from "@/components/packages/RestaurantsSection";
 import { getActiveFlights } from "@/lib/flights";
 import { getActiveApartments } from "@/lib/apartments";
+import { DistanceFilter } from "@/components/packages/DistanceFilter";
+import { normalizeMaxDistance } from "@/lib/distance";
 import { getActiveHotels } from "@/lib/hotels";
 import { getActiveRestaurants } from "@/lib/restaurants";
 
@@ -17,17 +19,27 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function JourneyPage() {
+export default async function JourneyPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const { distance } = await searchParams;
+  const maxDistance =
+    normalizeMaxDistance(Array.isArray(distance) ? distance[0] : distance) ??
+    undefined;
+
   const [hotels, apartments, restaurants, flights] = await Promise.all([
-    getActiveHotels(),
-    getActiveApartments(),
-    getActiveRestaurants(),
+    getActiveHotels(undefined, maxDistance),
+    getActiveApartments(undefined, maxDistance),
+    getActiveRestaurants(undefined, maxDistance),
     getActiveFlights(),
   ]);
 
   return (
     <main className="min-h-screen bg-[#f8fbfb] pt-24 text-[#17211f]">
       <LandingHeader />
+      <DistanceFilter value={maxDistance} />
       <HotelsSection hotels={hotels} />
       <HotelsSection
         hotels={apartments}

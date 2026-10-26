@@ -1,4 +1,5 @@
 import { db } from "@/db";
+import { normalizeMaxDistance } from "@/lib/distance";
 import { restaurants } from "@/db/schema";
 import {
   CITY_LANDMARKS,
@@ -91,7 +92,10 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const city = normalizeRestaurantCity(searchParams.get("city"));
 
-    const result = await getActiveRestaurants(city ?? undefined);
+    const maxDistance =
+      normalizeMaxDistance(searchParams.get("maxDistance")) ?? undefined;
+
+    const result = await getActiveRestaurants(city ?? undefined, maxDistance);
 
     return Response.json({
       success: true,

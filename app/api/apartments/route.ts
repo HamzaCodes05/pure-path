@@ -1,4 +1,5 @@
 import { db } from "@/db";
+import { normalizeMaxDistance } from "@/lib/distance";
 import { apartments } from "@/db/schema";
 import { getActiveApartments } from "@/lib/apartments";
 import { normalizeHotelCity } from "@/lib/hotels";
@@ -8,7 +9,10 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const city = normalizeHotelCity(searchParams.get("city"));
 
-    const result = await getActiveApartments(city ?? undefined);
+    const maxDistance =
+      normalizeMaxDistance(searchParams.get("maxDistance")) ?? undefined;
+
+    const result = await getActiveApartments(city ?? undefined, maxDistance);
 
     return Response.json({
       success: true,

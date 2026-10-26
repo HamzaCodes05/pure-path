@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { hotels } from "@/db/schema";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, lte } from "drizzle-orm";
 
 export type HotelCity = "makkah" | "madinah";
 
@@ -73,23 +73,26 @@ export function toHotelPayload(row: typeof hotels.$inferSelect): Hotel {
   };
 }
 
-export async function getActiveHotels(city?: HotelCity): Promise<Hotel[]> {
+export async function getActiveHotels(
+  city?: HotelCity,
+  maxDistance?: number,
+): Promise<Hotel[]> {
   try {
-    const rows = city
-      ? await db
-          .select()
-          .from(hotels)
-          .where(and(eq(hotels.isActive, true), eq(hotels.city, city)))
-          .orderBy(asc(hotels.distanceMeters), asc(hotels.name))
-      : await db
-          .select()
-          .from(hotels)
-          .where(eq(hotels.isActive, true))
-          .orderBy(
-            asc(hotels.city),
-            asc(hotels.distanceMeters),
-            asc(hotels.name),
-          );
+    const conditions = [eq(hotels.isActive, true)];
+
+    if (city) {
+      conditions.push(eq(hotels.city, city));
+    }
+
+    if (maxDistance) {
+      conditions.push(lte(hotels.distanceMeters, maxDistance));
+    }
+
+    const rows = await db
+      .select()
+      .from(hotels)
+      .where(and(...conditions))
+      .orderBy(asc(hotels.city), asc(hotels.distanceMeters), asc(hotels.name));
 
     return rows.map(toHotelPayload);
   } catch (error) {

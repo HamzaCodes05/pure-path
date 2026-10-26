@@ -23,8 +23,10 @@ type HotelsResponse = {
   hotels?: Hotel[];
 };
 
-export async function getHotels() {
-  const response = await fetch(`${API_BASE_URL}/api/hotels`);
+export async function getHotels(maxDistance?: number) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/hotels${maxDistance ? `?maxDistance=${maxDistance}` : ""}`,
+  );
 
   if (!response.ok) {
     throw new Error("Hotel listings are unavailable.");

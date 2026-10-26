@@ -22,6 +22,69 @@ import {
   SectionHeading,
 } from "../components/ui";
 
+const DISTANCE_OPTIONS = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000];
+
+// Dropdown for the distance-from-Haram filter; the backend does the filtering.
+function DistanceFilter({
+  value,
+  onChange,
+}: {
+  value: number | undefined;
+  onChange: (meters: number | undefined) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const options: { label: string; meters: number | undefined }[] = [
+    { label: "Any distance", meters: undefined },
+    ...DISTANCE_OPTIONS.map((meters) => ({
+      label: `Within ${meters} m`,
+      meters,
+    })),
+  ];
+
+  return (
+    <View className="mb-5">
+      <Text className="mb-2 text-[12px] font-extrabold uppercase text-pure-green">
+        Distance from the Haram
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Distance filter"
+        onPress={() => setOpen((current) => !current)}
+        className="min-h-12 flex-row items-center justify-between rounded-lg border border-[#d9e3df] bg-pure-white px-3.5"
+      >
+        <Text className="text-[15px] font-bold text-pure-ink">
+          {value ? `Within ${value} m` : "Any distance"}
+        </Text>
+        <Text className="text-pure-muted">{open ? "▲" : "▼"}</Text>
+      </Pressable>
+      {open ? (
+        <View className="mt-1 overflow-hidden rounded-lg border border-[#d9e3df] bg-pure-white">
+          {options.map((option) => (
+            <Pressable
+              key={option.label}
+              onPress={() => {
+                onChange(option.meters);
+                setOpen(false);
+              }}
+              className="px-3.5 py-3"
+            >
+              <Text
+                className={
+                  option.meters === value
+                    ? "text-[15px] font-extrabold text-pure-green"
+                    : "text-[15px] text-pure-ink"
+                }
+              >
+                {option.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 const HOTEL_CITY_ORDER: HotelCity[] = ["makkah", "madinah"];
 const HOTEL_CITY_LABELS: Record<HotelCity, string> = {
   makkah: "Makkah",
@@ -133,6 +196,7 @@ function ListingSwiper({
 }
 
 export function JourneyScreen() {
+  const [maxDistance, setMaxDistance] = useState<number | undefined>();
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [isHotelsLoading, setIsHotelsLoading] = useState(true);
   const [hotelError, setHotelError] = useState<string | null>(null);
@@ -149,7 +213,9 @@ export function JourneyScreen() {
   useEffect(() => {
     let isMounted = true;
 
-    getHotels()
+    setIsHotelsLoading(true);
+    setHotelError(null);
+    getHotels(maxDistance)
       .then((nextHotels) => {
         if (isMounted) {
           setHotels(nextHotels);
@@ -169,12 +235,14 @@ export function JourneyScreen() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [maxDistance]);
 
   useEffect(() => {
     let isMounted = true;
 
-    getApartments()
+    setIsApartmentsLoading(true);
+    setApartmentError(null);
+    getApartments(maxDistance)
       .then((next) => isMounted && setApartments(next))
       .catch(
         () =>
@@ -186,12 +254,14 @@ export function JourneyScreen() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [maxDistance]);
 
   useEffect(() => {
     let isMounted = true;
 
-    getRestaurants()
+    setIsRestaurantsLoading(true);
+    setRestaurantError(null);
+    getRestaurants(maxDistance)
       .then((nextRestaurants) => {
         if (isMounted) {
           setRestaurants(nextRestaurants);
@@ -211,7 +281,7 @@ export function JourneyScreen() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [maxDistance]);
 
   useEffect(() => {
     let isMounted = true;
@@ -277,6 +347,7 @@ export function JourneyScreen() {
       />
 
       <Section tone="paper">
+        <DistanceFilter value={maxDistance} onChange={setMaxDistance} />
         <SectionHeading
           eyebrow="Hotel Stays"
           title="Hotels Close to the Holy Mosques"

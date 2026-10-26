@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { restaurants } from "@/db/schema";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, lte } from "drizzle-orm";
 
 export type RestaurantCity = "makkah" | "madinah";
 
@@ -96,22 +96,28 @@ function toRestaurantPayload(
 
 export async function getActiveRestaurants(
   city?: RestaurantCity,
+  maxDistance?: number,
 ): Promise<Restaurant[]> {
   try {
-    const rows = city
-      ? await db
-          .select()
-          .from(restaurants)
-          .where(eq(restaurants.city, city))
-          .orderBy(asc(restaurants.distanceMeters), asc(restaurants.name))
-      : await db
-          .select()
-          .from(restaurants)
-          .orderBy(
-            asc(restaurants.city),
-            asc(restaurants.distanceMeters),
-            asc(restaurants.name),
-          );
+    const conditions = [];
+
+    if (city) {
+      conditions.push(eq(restaurants.city, city));
+    }
+
+    if (maxDistance) {
+      conditions.push(lte(restaurants.distanceMeters, maxDistance));
+    }
+
+    const rows = await db
+      .select()
+      .from(restaurants)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(
+        asc(restaurants.city),
+        asc(restaurants.distanceMeters),
+        asc(restaurants.name),
+      );
 
     return rows.map(toRestaurantPayload);
   } catch (error) {

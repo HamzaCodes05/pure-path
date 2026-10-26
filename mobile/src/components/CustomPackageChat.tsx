@@ -3,6 +3,7 @@ import { Pressable, Text, TextInput, View } from "react-native";
 
 import { API_BASE_URL } from "../config";
 import { cn } from "../utils/cn";
+import { FormattedText } from "./FormattedText";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -83,7 +84,7 @@ export function CustomPackageChat() {
                 m.role === "user" ? "text-pure-white" : "text-pure-ink",
               )}
             >
-              {m.content}
+              <FormattedText text={m.content} />
             </Text>
           </View>
         ))}

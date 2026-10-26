@@ -9,8 +9,10 @@ type ApartmentsResponse = {
   apartments?: Apartment[];
 };
 
-export async function getApartments() {
-  const response = await fetch(`${API_BASE_URL}/api/apartments`);
+export async function getApartments(maxDistance?: number) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/apartments${maxDistance ? `?maxDistance=${maxDistance}` : ""}`,
+  );
 
   if (!response.ok) {
     throw new Error("Apartment listings are unavailable.");

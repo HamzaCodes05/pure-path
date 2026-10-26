@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 
+import { FormattedText } from "../components/FormattedText";
 import { API_BASE_URL } from "../config";
 import { images } from "../data/purePath";
 import { cn } from "../utils/cn";
@@ -175,7 +176,7 @@ export function ChatScreen() {
                         isUser ? "text-pure-white" : "text-pure-ink",
                       )}
                     >
-                      {message.content}
+                      <FormattedText text={message.content} />
                     </Text>
                   </View>
                 </View>

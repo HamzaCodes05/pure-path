@@ -24,8 +24,10 @@ type RestaurantsResponse = {
   restaurants?: Restaurant[];
 };
 
-export async function getRestaurants() {
-  const response = await fetch(`${API_BASE_URL}/api/restaurants`);
+export async function getRestaurants(maxDistance?: number) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/restaurants${maxDistance ? `?maxDistance=${maxDistance}` : ""}`,
+  );
 
   if (!response.ok) {
     throw new Error("Restaurant listings are unavailable.");
